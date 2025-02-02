@@ -5,15 +5,16 @@ const Password = require("./../model/password");
 exports.uploadAPassword = async (req, res, next) => {
   try {
     const { name, password } = req.body;
-    if(!name || !password){
-      return next(new ErrorHandler("Either name or password is missing.",404));
-    }
 
     // Check if the name already exists
     const existingPassword = await Password.findOne({ name });
 
     if (existingPassword) {
-      return next(new ErrorHandler("Password for this service already exists. You can update it instead.",400))
+      // If it exists, send an error message
+      return res.status(400).json({
+        message:
+          "Password for this service already exists. You can update it instead.",
+      });
     }
     // If it doesn't exist, create a new password
 
@@ -26,7 +27,9 @@ exports.uploadAPassword = async (req, res, next) => {
       passwordmodel,
     });
   } catch (error) {
-    next(error);
+    console.log(error);
+    // res.status(500).json({ message: "Error uploading password" });
+    return next(new ErrorHandler("Error uploading password", 500));
   }
 };
 
@@ -34,9 +37,6 @@ exports.uploadAPassword = async (req, res, next) => {
 exports.updatePassword = async (req, res, next) => {
   try {
     const { name, password } = req.body;
-    if(!name || !password){
-      return next(new ErrorHandler("Either name or password is missing.",404))
-    }
     const updatedPassword = await Password.findOneAndUpdate(
       { name }, // Find the password by name
       { password }, // Update the password
@@ -44,8 +44,7 @@ exports.updatePassword = async (req, res, next) => {
     );
 
     if (!updatedPassword) {
-      // return res.status(404).json({ message: "Password not found" });
-      return next(new ErrorHandler("Password not found.",404))
+      return res.status(404).json({ message: "Password not found" });
     }
 
     res.status(200).json({
@@ -53,7 +52,9 @@ exports.updatePassword = async (req, res, next) => {
       updatedPassword,
     });
   } catch (error) {
-    next(error);
+    console.log(error);
+    // res.status(500).json({ message: "Error updating password" });
+    return next(new ErrorHandler("Error updating password", 500));
   }
 };
 
@@ -64,8 +65,7 @@ exports.deletePassword = async (req, res, next) => {
     const deletedPassword = await Password.findOneAndDelete({ name });
 
     if (!deletedPassword) {
-      // return res.status(404).json({ message: "Password not found" });
-      return next(new ErrorHandler("Password not found.",404))
+      return res.status(404).json({ message: "Password not found" });
     }
 
     res.status(200).json({
@@ -73,19 +73,8 @@ exports.deletePassword = async (req, res, next) => {
       deletedPassword,
     });
   } catch (error) {
-    next(error);
-  }
-};
-
-//get all passwords 
-exports.findallpassword = async (req, res, next) => {
-  try {
-    const passwords = await Password.find();
-    res.status(200).json({
-      message: "all passwords fetched successfully!",
-      data : passwords
-    });
-  } catch (error) {
-    next(error);
+    console.log(error);
+    // res.status(500).json({ message: "Error deleting password" });
+    return next(new ErrorHandler("Error deleting password", 500));
   }
 };
